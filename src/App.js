@@ -1,41 +1,55 @@
 import React, { useState } from 'react';
-import TaskForm from './components/TaskForm';
-import TaskList from './components/TaskList';
+import axios from 'axios';
 
-const App = () => {
+function App() {
+  const [taskText, setTaskText] = useState('');
+  const [taskDate, setTaskDate] = useState('');
   const [tasks, setTasks] = useState([]);
 
-  const handleAddTask = (newTask) => {
-    setTasks([...tasks, { ...newTask, completed: false }]);
-  };
+  const handleAddTask = async () => {
+    if (!taskText || !taskDate) return alert('Both fields required!');
+    
+    try {
+      const res = await axios.post('http://localhost:8000/api/create-task/', {
+        text: taskText,
+        date: taskDate,
+        completed: false
+      });
 
-  const handleComplete = (index) => {
-    const updated = [...tasks];
-    updated[index].completed = !updated[index].completed;
-    setTasks(updated);
-  };
-
-  const handleDelete = (index) => {
-    const updated = tasks.filter((_, i) => i !== index);
-    setTasks(updated);
-  };
-
-  const handleEdit = (index) => {
-    const newText = prompt("Edit task", tasks[index].text);
-    if (newText) {
-      const updated = [...tasks];
-      updated[index].text = newText;
-      setTasks(updated);
+      setTasks(prev => [...prev, res.data]);
+      setTaskText('');
+    } catch (error) {
+      console.error('Error creating task:', error);
     }
   };
 
   return (
-    <div className="container mt-4">
-      <h2 className="text-center mb-4">React ToDo List</h2>
-      <TaskForm onAddTask={handleAddTask} />
-      <TaskList tasks={tasks} onComplete={handleComplete} onDelete={handleDelete} onEdit={handleEdit} />
+    <div className="container mt-5">
+      <h2>📅 React To-Do List</h2>
+      <div className="row g-2 mb-3">
+        <div className="col-sm-4">
+          <input type="date" className="form-control" value={taskDate} onChange={e => setTaskDate(e.target.value)} />
+        </div>
+        <div className="col-sm-5">
+          <input type="text" className="form-control" placeholder="Enter task" value={taskText} onChange={e => setTaskText(e.target.value)} />
+        </div>
+        <div className="col-sm-3">
+          <button className="btn btn-primary w-100" onClick={handleAddTask}>Add Task</button>
+        </div>
+      </div>
+
+      <ul className="list-group">
+        {tasks.map((task, i) => (
+          <li key={i} className="list-group-item d-flex justify-content-between">
+            <span>
+              <strong>{task.text}</strong><br />
+              <small className="text-muted">{task.date}</small>
+            </span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
-};
+}
 
 export default App;
