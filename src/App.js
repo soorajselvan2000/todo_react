@@ -1,53 +1,70 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+// src/App.js
+import React, { useState, useEffect } from 'react';
+import { Routes, Route } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import SignupPage from './pages/SignupPage';
+import LoginPage from './pages/LoginPage';
+import LogoutButton from './components/LogoutButton';
 
 function App() {
-  const [taskText, setTaskText] = useState('');
-  const [taskDate, setTaskDate] = useState('');
-  const [tasks, setTasks] = useState([]);
+  // Initial state from localStorage
+  const [token, setToken] = useState(localStorage.getItem('token') || null);
+  const [username, setUsername] = useState(localStorage.getItem('username') || null);
 
-  const handleAddTask = async () => {
-    if (!taskText || !taskDate) return alert('Both fields required!');
-    
-    try {
-      const res = await axios.post('http://localhost:8000/api/create-task/', {
-        text: taskText,
-        date: taskDate,
-        completed: false
-      });
+  const isAuthenticated = !!token;
 
-      setTasks(prev => [...prev, res.data]);
-      setTaskText('');
-    } catch (error) {
-      console.error('Error creating task:', error);
-    }
+  // Save to localStorage on login
+  const handleLogin = (newToken, newUsername) => {
+    setToken(newToken);
+    setUsername(newUsername);
+    localStorage.setItem('token', newToken);
+    localStorage.setItem('username', newUsername);
+  };
+
+  // Clear everything on logout
+  const handleLogout = () => {
+    setToken(null);
+    setUsername(null);
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
   };
 
   return (
-    <div className="container mt-5">
-      <h2>📅 React To-Do List</h2>
-      <div className="row g-2 mb-3">
-        <div className="col-sm-4">
-          <input type="date" className="form-control" value={taskDate} onChange={e => setTaskDate(e.target.value)} />
-        </div>
-        <div className="col-sm-5">
-          <input type="text" className="form-control" placeholder="Enter task" value={taskText} onChange={e => setTaskText(e.target.value)} />
-        </div>
-        <div className="col-sm-3">
-          <button className="btn btn-primary w-100" onClick={handleAddTask}>Add Task</button>
-        </div>
-      </div>
+    <div className="App">
+      <Navbar isAuthenticated={isAuthenticated} handleLogout={handleLogout} />
 
-      <ul className="list-group">
-        {tasks.map((task, i) => (
-          <li key={i} className="list-group-item d-flex justify-content-between">
-            <span>
-              <strong>{task.text}</strong><br />
-              <small className="text-muted">{task.date}</small>
-            </span>
-          </li>
-        ))}
-      </ul>
+      {isAuthenticated && (
+        <h2 style={{ textAlign: 'center', marginTop: '20px' }}>
+          👋 Welcome, <span style={{ color: '#007bff' }}>{username}</span>!
+        </h2>
+      )}
+
+      <Routes>
+        <Route
+          path="/signup"
+          element={<SignupPage isAuthenticated={isAuthenticated} />}
+        />
+        <Route
+          path="/login"
+          element={
+            <LoginPage
+              setToken={(t) => handleLogin(t, username)}
+              setUsername={(u) => handleLogin(token, u)}
+              isAuthenticated={isAuthenticated}
+            />
+          }
+        />
+        <Route
+          path="/"
+          element={
+            <LogoutButton
+              setToken={setToken}
+              setUsername={setUsername}
+              username={username}
+            />
+          }
+        />
+      </Routes>
     </div>
   );
 }
