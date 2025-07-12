@@ -8,7 +8,7 @@ import {
   Toast,
   ToastContainer,
   Modal,
-  Pagination,
+  Pagination
 } from 'react-bootstrap';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -25,8 +25,9 @@ const TodoList = () => {
   const [showModal, setShowModal] = useState(false);
   const [todoToDelete, setTodoToDelete] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const todosPerPage = 5;
+  const [searchTerm, setSearchTerm] = useState('');
 
+  const todosPerPage = 5;
   const token = localStorage.getItem('token');
 
   const fetchTodos = async () => {
@@ -118,13 +119,11 @@ const TodoList = () => {
     setTimeout(() => setShowToast(false), 3000);
   };
 
-  // Pagination Logic
+  const filteredTodos = todos.filter(todo => todo.task.toLowerCase().includes(searchTerm.toLowerCase()));
   const indexOfLastTodo = currentPage * todosPerPage;
   const indexOfFirstTodo = indexOfLastTodo - todosPerPage;
-  const currentTodos = todos.slice(indexOfFirstTodo, indexOfLastTodo);
-  const totalPages = Math.ceil(todos.length / todosPerPage);
-
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const currentTodos = filteredTodos.slice(indexOfFirstTodo, indexOfLastTodo);
+  const totalPages = Math.ceil(filteredTodos.length / todosPerPage);
 
   return (
     <div className="container mt-5">
@@ -152,6 +151,17 @@ const TodoList = () => {
           {editingId ? 'Update Todo' : 'Add Todo'}
         </Button>
       </Form>
+
+      <Form.Control
+        type="text"
+        placeholder="Search tasks..."
+        className="mb-3"
+        value={searchTerm}
+        onChange={(e) => {
+          setSearchTerm(e.target.value);
+          setCurrentPage(1);
+        }}
+      />
 
       <StatusFilter selectedStatus={statusFilter} onStatusChange={setStatusFilter} />
 
@@ -204,26 +214,26 @@ const TodoList = () => {
         </tbody>
       </Table>
 
-      {totalPages > 1 && (
-        <Pagination className="justify-content-center">
-          {[...Array(totalPages)].map((_, i) => (
-            <Pagination.Item
-              key={i + 1}
-              active={i + 1 === currentPage}
-              onClick={() => paginate(i + 1)}
-            >
-              {i + 1}
-            </Pagination.Item>
-          ))}
-        </Pagination>
-      )}
+      <Pagination className="justify-content-center">
+        {[...Array(totalPages).keys()].map((number) => (
+          <Pagination.Item
+            key={number + 1}
+            active={number + 1 === currentPage}
+            onClick={() => setCurrentPage(number + 1)}
+          >
+            {number + 1}
+          </Pagination.Item>
+        ))}
+      </Pagination>
 
+      {/* Toast Notification */}
       <ToastContainer position="bottom-end" className="p-3">
         <Toast bg="dark" onClose={() => setShowToast(false)} show={showToast} delay={3000} autohide>
           <Toast.Body className="text-white">{toastMessage}</Toast.Body>
         </Toast>
       </ToastContainer>
 
+      {/* Delete Confirmation Modal */}
       <Modal show={showModal} onHide={() => setShowModal(false)} centered>
         <Modal.Header closeButton style={{ backgroundColor: '#6f42c1' }}>
           <Modal.Title className="text-white">Confirm Delete</Modal.Title>
