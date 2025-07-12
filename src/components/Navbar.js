@@ -1,24 +1,26 @@
-// src/components/Navbar.js
 import React from 'react';
 import { Link } from 'react-router-dom';
-import './Navbar.css';
 
-const Navbar = ({ isAuthenticated, handleLogout }) => {
-  return (
-    <nav className="navbar">
-      <div className="nav-brand">📝 To-Do App</div>
-      <ul className="nav-links">
-        {!isAuthenticated ? (
-          <>
-            <li><Link to="/signup">Signup</Link></li>
-            <li><Link to="/login">Login</Link></li>
-          </>
-        ) : (
-          <li><button onClick={handleLogout}>Logout</button></li>
-        )}
+const Navbar = () => (
+  <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div className="container-fluid">
+    <a className="navbar-brand" href="/">ToDo App</a>
+    <div className="collapse navbar-collapse">
+      <ul className="navbar-nav ms-auto">
+        <li className="nav-item">
+          <a className="nav-link" href="/signup">Signup</a>
+        </li>
+        <li className="nav-item">
+          <a className="nav-link" href="/login">Login</a>
+        </li>
+        <li className="nav-item">
+          <a className="nav-link" href="/logout">Logout</a>
+        </li>
       </ul>
-    </nav>
-  );
-};
+    </div>
+  </div>
+</nav>
+
+);
 
 export default Navbar;
