@@ -8,11 +8,16 @@ import {
   Toast,
   ToastContainer,
   Modal,
-  Pagination
+  Dropdown,
+  DropdownButton,
+  InputGroup
 } from 'react-bootstrap';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import StatusFilter from './StatusFilter';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import ImportDropdown from './ImportDropdown';
 
 const TodoList = () => {
   const [todos, setTodos] = useState([]);
@@ -24,10 +29,8 @@ const TodoList = () => {
   const [showToast, setShowToast] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [todoToDelete, setTodoToDelete] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const todosPerPage = 5;
   const token = localStorage.getItem('token');
 
   const fetchTodos = async () => {
@@ -119,11 +122,53 @@ const TodoList = () => {
     setTimeout(() => setShowToast(false), 3000);
   };
 
-  const filteredTodos = todos.filter(todo => todo.task.toLowerCase().includes(searchTerm.toLowerCase()));
-  const indexOfLastTodo = currentPage * todosPerPage;
-  const indexOfFirstTodo = indexOfLastTodo - todosPerPage;
-  const currentTodos = filteredTodos.slice(indexOfFirstTodo, indexOfLastTodo);
-  const totalPages = Math.ceil(filteredTodos.length / todosPerPage);
+  const filteredTodos = todos.filter(todo =>
+    todo.task.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const exportAsJson = () => {
+    const blob = new Blob([JSON.stringify(filteredTodos, null, 2)], { type: 'application/json' });
+    downloadBlob(blob, 'todos.json');
+  };
+
+  const exportAsText = () => {
+    const text = filteredTodos.map(todo => `${todo.date} - ${todo.task} - ${todo.is_completed ? 'Completed' : 'Pending'}`).join('\n');
+    const blob = new Blob([text], { type: 'text/plain' });
+    downloadBlob(blob, 'todos.txt');
+  };
+
+  const exportAsCSV = () => {
+    const csv = 'Date,Task,Status\n' +
+      filteredTodos.map(todo => `${todo.date},"${todo.task}",${todo.is_completed ? 'Completed' : 'Pending'}`).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    downloadBlob(blob, 'todos.csv');
+  };
+
+  const exportAsPDF = () => {
+    const doc = new jsPDF();
+    doc.autoTable({
+      head: [['Date', 'Task', 'Status']],
+      body: filteredTodos.map(todo => [todo.date, todo.task, todo.is_completed ? 'Completed' : 'Pending'])
+    });
+    doc.save('todos.pdf');
+  };
+
+  const exportAsSQL = () => {
+    const sqlStatements = filteredTodos.map(todo =>
+      `INSERT INTO todos (date, task, is_completed) VALUES ('${todo.date}', '${todo.task.replace(/'/g, "''")}', ${todo.is_completed});`
+    ).join('\n');
+    const blob = new Blob([sqlStatements], { type: 'text/sql' });
+    downloadBlob(blob, 'todos.sql');
+  };
+
+  const downloadBlob = (blob, filename) => {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="container mt-5">
@@ -152,16 +197,22 @@ const TodoList = () => {
         </Button>
       </Form>
 
-      <Form.Control
-        type="text"
-        placeholder="Search tasks..."
-        className="mb-3"
-        value={searchTerm}
-        onChange={(e) => {
-          setSearchTerm(e.target.value);
-          setCurrentPage(1);
-        }}
-      />
+      <InputGroup className="mb-3">
+        <Form.Control
+          placeholder="Search todos..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+
+        <DropdownButton variant="secondary" title="Export" id="export-dropdown">
+          <Dropdown.Item onClick={exportAsJson}>Export as JSON</Dropdown.Item>
+          <Dropdown.Item onClick={exportAsCSV}>Export as CSV</Dropdown.Item>
+          <Dropdown.Item onClick={exportAsText}>Export as Text</Dropdown.Item>
+          <Dropdown.Item onClick={exportAsSQL}>Export as SQL</Dropdown.Item>
+        </DropdownButton>
+      </InputGroup>
+
+      <ImportDropdown onImportSuccess={fetchTodos} />
 
       <StatusFilter selectedStatus={statusFilter} onStatusChange={setStatusFilter} />
 
@@ -175,7 +226,7 @@ const TodoList = () => {
           </tr>
         </thead>
         <tbody>
-          {currentTodos.map((todo) => (
+          {filteredTodos.map((todo) => (
             <tr key={todo.id}>
               <td>{todo.date}</td>
               <td style={{ textDecoration: todo.is_completed ? 'line-through' : 'none' }}>
@@ -204,7 +255,7 @@ const TodoList = () => {
               </td>
             </tr>
           ))}
-          {currentTodos.length === 0 && (
+          {filteredTodos.length === 0 && (
             <tr>
               <td colSpan="4" className="text-center">
                 No tasks found
@@ -213,18 +264,6 @@ const TodoList = () => {
           )}
         </tbody>
       </Table>
-
-      <Pagination className="justify-content-center">
-        {[...Array(totalPages).keys()].map((number) => (
-          <Pagination.Item
-            key={number + 1}
-            active={number + 1 === currentPage}
-            onClick={() => setCurrentPage(number + 1)}
-          >
-            {number + 1}
-          </Pagination.Item>
-        ))}
-      </Pagination>
 
       {/* Toast Notification */}
       <ToastContainer position="bottom-end" className="p-3">
