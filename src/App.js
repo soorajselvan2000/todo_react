@@ -1,26 +1,42 @@
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import Navbar from './components/Navbar';
-import Signup from './Auth/Signup';
-import Login from './Auth/Login';
-import Logout from './Auth/Logout';
-import TodoList from './components/TodoList'
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { useEffect } from "react";
+import { userLoginSuccess } from "./store/userAuthSlice";
+
+import Navbar from "./components/Navbar";
+import Signup from "./components/Auth/Signup";
+import Login from "./components/Auth/Login";
+import Logout from "./components/Auth/Logout";
+import AdminLogin from "./components/Admin/AdminLogin";
+import UserReport from "./components/Admin/UserReport";
+import UserStats from "./components/Admin/UserStats";
+import TodoList from "./components/Todos/Todolist";
 
 function App() {
-  const token = localStorage.getItem('token');
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const token = localStorage.getItem("userToken");
+    const user = JSON.parse(localStorage.getItem("userInfo"));
+    if (token && user) {
+      dispatch(userLoginSuccess({ token, user }));
+    }
+  }, [dispatch]);
+
   return (
-    <>
-      <Navbar />
+    <Router>
+      <Navbar /> {/* Navbar always visible */}
       <Routes>
-        <Route
-          path="/"
-          element={token ? <TodoList /> : <Navigate to="/login" replace />}
-        />
+        <Route path="/" element={<Login />} />  {/* default route */}
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/todos" element={<TodoList />} />
         <Route path="/logout" element={<Logout />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/report" element={<UserReport />} />
+        <Route path="/admin/usage-stats" element={<UserStats />} />
       </Routes>
-    </>
+    </Router>
   );
 }
 
