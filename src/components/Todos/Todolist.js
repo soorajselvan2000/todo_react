@@ -10,15 +10,17 @@ import {
 import StatusFilter from "../Todos/StatusFilter";
 import UpdateTodo from "./UpdateTodo";
 import ExportTodos from "./ExportTodos";
+import ImportTodos from "./ImportTodos";
 
 const TodoList = () => {
   const [todos, setTodos] = useState([]);
   const [newTask, setNewTask] = useState("");
+  const [newDate, setNewDate] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [searchDate, setSearchDate] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [editingId, setEditingId] = useState(null); // Track which todo is being edited
+  const [editingId, setEditingId] = useState(null);
 
   // Fetch all todos
   const fetchTodos = async () => {
@@ -39,15 +41,16 @@ const TodoList = () => {
 
   // Create new todo
   const handleCreate = async () => {
-    if (!newTask.trim()) return;
+    if (!newTask.trim() || !newDate) return;
     try {
       const created = await createTodo({
         task: newTask,
-        date: new Date().toISOString().split("T")[0],
+        date: newDate,
         is_completed: false,
       });
       setTodos([created, ...todos]);
       setNewTask("");
+      setNewDate("");
     } catch (err) {
       setError(err.response?.data?.detail || "Failed to create todo");
     }
@@ -114,7 +117,7 @@ const TodoList = () => {
     }
   };
 
-  // Filter todos based on status
+  // Filter todos
   const filteredTodos = todos.filter((todo) => {
     if (filterStatus === "completed") return todo.is_completed;
     if (filterStatus === "pending") return !todo.is_completed;
@@ -135,6 +138,12 @@ const TodoList = () => {
           value={newTask}
           onChange={(e) => setNewTask(e.target.value)}
         />
+        <input
+          type="date"
+          className="form-control"
+          value={newDate}
+          onChange={(e) => setNewDate(e.target.value)}
+        />
         <button className="btn btn-primary" onClick={handleCreate}>
           Add
         </button>
@@ -152,7 +161,10 @@ const TodoList = () => {
           Search
         </button>
       </div>
+
+      {/* Import / Export */}
       <ExportTodos todos={todos} />
+      <ImportTodos onImportSuccess={fetchTodos} />
 
       {/* Status filter */}
       <StatusFilter setFilterStatus={setFilterStatus} />
@@ -169,7 +181,11 @@ const TodoList = () => {
               }`}
             >
               {editingId === todo.id ? (
-                <UpdateTodo todo={todo} onSave={saveEdit} onCancel={cancelEdit} />
+                <UpdateTodo
+                  todo={todo}
+                  onSave={saveEdit}
+                  onCancel={cancelEdit}
+                />
               ) : (
                 <>
                   <span
@@ -179,6 +195,11 @@ const TodoList = () => {
                     }}
                   >
                     {todo.task} ({todo.date})
+                    {todo.is_imported && (
+                      <span className="badge bg-warning text-dark ms-2">
+                        Imported
+                      </span>
+                    )}
                   </span>
                   <div>
                     <button
