@@ -4,8 +4,8 @@ import { useSelector } from "react-redux";
 import axios from "axios";
 
 const UserStats = () => {
-  const { adminToken } = useSelector((state) => state.admin || {});
-  const [stats, setStats] = useState(null);
+  const adminToken = useSelector((state) => state.adminAuth.adminToken);
+  const [stats, setStats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -13,9 +13,9 @@ const UserStats = () => {
     const fetchStats = async () => {
       if (!adminToken) return;
       try {
-        const response = await axios.get("/api/admin/stats/", {
+        const response = await axios.get("http://127.0.0.1:8000/api/admin/usage-stats/", {
           headers: {
-            Authorization: `Bearer ${adminToken}`,
+            Authorization: `Token ${adminToken}`,
           },
         });
         setStats(response.data);
@@ -37,40 +37,34 @@ const UserStats = () => {
   return (
     <div className="container mt-4">
       <h3>User Statistics</h3>
-      {stats ? (
-        <div className="row mt-3">
-          <div className="col-md-3">
-            <div className="card text-bg-primary mb-3">
-              <div className="card-body">
-                <h5 className="card-title">Total Users</h5>
-                <p className="card-text fs-4">{stats.total_users}</p>
-              </div>
-            </div>
-          </div>
-          <div className="col-md-3">
-            <div className="card text-bg-success mb-3">
-              <div className="card-body">
-                <h5 className="card-title">Total Todos</h5>
-                <p className="card-text fs-4">{stats.total_todos}</p>
-              </div>
-            </div>
-          </div>
-          <div className="col-md-3">
-            <div className="card text-bg-warning mb-3">
-              <div className="card-body">
-                <h5 className="card-title">Completed Todos</h5>
-                <p className="card-text fs-4">{stats.completed_todos}</p>
-              </div>
-            </div>
-          </div>
-          <div className="col-md-3">
-            <div className="card text-bg-danger mb-3">
-              <div className="card-body">
-                <h5 className="card-title">Pending Todos</h5>
-                <p className="card-text fs-4">{stats.pending_todos}</p>
-              </div>
-            </div>
-          </div>
+      {stats.length > 0 ? (
+        <div className="table-responsive mt-3">
+          <table className="table table-bordered table-striped">
+            <thead className="table-dark">
+              <tr>
+                <th>Username</th>
+                <th>Added</th>
+                <th>Deleted</th>
+                <th>Completed</th>
+                <th>Edited</th>
+                <th>Imported</th>
+                <th>Exported</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stats.map((user) => (
+                <tr key={user.username}>
+                  <td>{user.username}</td>
+                  <td>{user.added_tasks}</td>
+                  <td>{user.deleted_tasks}</td>
+                  <td>{user.completed_tasks}</td>
+                  <td>{user.edited_tasks}</td>
+                  <td>{user.imported_tasks}</td>
+                  <td>{user.exported_tasks}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       ) : (
         <p>No statistics available.</p>

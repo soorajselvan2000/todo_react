@@ -4,6 +4,7 @@ import { signupUser } from "../../services/api";
 
 function Signup() {
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password1, setPassword1] = useState("");
   const [password2, setPassword2] = useState("");
   const [error, setError] = useState("");
@@ -21,13 +22,14 @@ function Signup() {
     }
 
     try {
-      await signupUser({ username, password1, password2 });
+      await signupUser({ username, email, password1, password2 });
       setSuccess("Account created successfully! Redirecting to login...");
       setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
       setError(
         err.response?.data?.username?.[0] ||
         err.response?.data?.password1?.[0] ||
+        err.response?.data?.email?.[0] ||
         "Signup failed"
       );
     }
@@ -46,6 +48,14 @@ function Signup() {
             onChange={(e) => setUsername(e.target.value)}
             required
           />
+          <label>Email</label>
+          <input
+            type="email"
+            className="form-control"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />  
         </div>
         <div className="mb-3">
           <label>Password</label>

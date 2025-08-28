@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import axios from "axios";
 
 const UserReport = () => {
-  const { adminToken } = useSelector((state) => state.admin || {});
+  const adminToken = useSelector((state) => state.adminAuth.adminToken);
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -13,9 +13,9 @@ const UserReport = () => {
     const fetchReports = async () => {
       if (!adminToken) return; // Stop if no token
       try {
-        const response = await axios.get("/api/admin/reports/", {
+        const response = await axios.get("http://127.0.0.1:8000/api/admin/report/", {
           headers: {
-            Authorization: `Bearer ${adminToken}`,
+            Authorization: `Token ${adminToken}`, // ✅ DRF expects Token, not Bearer
           },
         });
         setReports(response.data);
@@ -45,7 +45,6 @@ const UserReport = () => {
             <thead className="table-dark">
               <tr>
                 <th>User</th>
-                <th>Email</th>
                 <th>Total Todos</th>
                 <th>Completed Todos</th>
                 <th>Pending Todos</th>
@@ -53,12 +52,11 @@ const UserReport = () => {
             </thead>
             <tbody>
               {reports.map((report) => (
-                <tr key={report.user_id}>
+                <tr key={report.id}>
                   <td>{report.username}</td>
-                  <td>{report.email}</td>
-                  <td>{report.total_todos}</td>
-                  <td>{report.completed_todos}</td>
-                  <td>{report.pending_todos}</td>
+                  <td>{report.total_tasks}</td>
+                  <td>{report.completed_tasks}</td>
+                  <td>{report.pending_tasks}</td>
                 </tr>
               ))}
             </tbody>
