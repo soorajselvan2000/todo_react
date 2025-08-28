@@ -17,6 +17,9 @@ const TodoList = () => {
   const [newTask, setNewTask] = useState("");
   const [newDate, setNewDate] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [todoToDelete, setTodoToDelete] = useState(null);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
   const [searchDate, setSearchDate] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -40,21 +43,34 @@ const TodoList = () => {
   }, []);
 
   // Create new todo
-  const handleCreate = async () => {
-    if (!newTask.trim() || !newDate) return;
-    try {
-      const created = await createTodo({
-        task: newTask,
-        date: newDate,
-        is_completed: false,
-      });
-      setTodos([created, ...todos]);
-      setNewTask("");
-      setNewDate("");
-    } catch (err) {
-      setError(err.response?.data?.detail || "Failed to create todo");
-    }
-  };
+      const handleCreate = async () => {
+        if (!newTask.trim() || !newDate) return;
+
+        try {
+          const created = await createTodo({
+            task: newTask,
+            date: newDate,
+            is_completed: false,
+          });
+
+          setTodos([created, ...todos]);
+          setNewTask("");
+          setNewDate("");
+
+          // ✅ Show success toast
+          setToastMessage("Todo created successfully!");
+          setShowToast(true);
+          setTimeout(() => setShowToast(false), 3000);
+        } catch (err) {
+          setError(err.response?.data?.detail || "Failed to create todo");
+
+          // ❌ Show error toast
+          setToastMessage("Failed to create todo!");
+          setShowToast(true);
+          setTimeout(() => setShowToast(false), 3000);
+        }
+      };
+
 
   // Toggle complete/undo
   const handleToggleComplete = async (todo) => {
@@ -76,10 +92,21 @@ const TodoList = () => {
   };
 
   // Delete todo
-  const handleDelete = async (id) => {
+  const confirmDelete = (todo) => {
+    setTodoToDelete(todo);
+  };
+
+  const handleDeleteConfirmed = async () => {
+    if (!todoToDelete) return;
     try {
-      await deleteTodo(id);
-      setTodos(todos.filter((t) => t.id !== id));
+      await deleteTodo(todoToDelete.id);
+      setTodos(todos.filter((t) => t.id !== todoToDelete.id));
+      setTodoToDelete(null); // close modal
+
+      // ✅ show success toast
+      setToastMessage("Todo deleted successfully!");
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000); // auto hide after 3s
     } catch (err) {
       setError(err.response?.data?.detail || "Failed to delete todo");
     }
@@ -218,10 +245,11 @@ const TodoList = () => {
                     </button>
                     <button
                       className="btn btn-danger btn-sm"
-                      onClick={() => handleDelete(todo.id)}
+                      onClick={() => confirmDelete(todo)}
                     >
                       Delete
                     </button>
+
                   </div>
                 </>
               )}
@@ -229,6 +257,60 @@ const TodoList = () => {
           ))}
         </ul>
       )}
+      {/* Delete Confirmation Modal */}
+          {todoToDelete && (
+            <div
+              className="modal fade show"
+              style={{ display: "block", backgroundColor: "rgba(0,0,0,0.5)" }}
+            >
+              <div className="modal-dialog modal-dialog-centered">
+                <div className="modal-content rounded-4 shadow">
+                  <div className="modal-header bg-danger text-white rounded-top-4">
+                    <h5 className="modal-title">Confirm Delete</h5>
+                    <button
+                      type="button"
+                      className="btn-close btn-close-white"
+                      onClick={() => setTodoToDelete(null)}
+                    ></button>
+                  </div>
+                  <div className="modal-body">
+                    <p>
+                      Are you sure you want to delete <strong>{todoToDelete.task}</strong>?
+                    </p>
+                  </div>
+                  <div className="modal-footer">
+                    <button
+                      className="btn btn-secondary"
+                      onClick={() => setTodoToDelete(null)}
+                    >
+                      Cancel
+                    </button>
+                    <button className="btn btn-danger" onClick={handleDeleteConfirmed}>
+                      Yes, Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          {/* Success Toast */}
+            {showToast && (
+              <div
+                className="toast show position-fixed bottom-0 end-0 m-3"
+                role="alert"
+                style={{ zIndex: 1050 }}
+              >
+                <div className="toast-header bg-success text-white">
+                  <strong className="me-auto">Success</strong>
+                  <button
+                    type="button"
+                    className="btn-close btn-close-white"
+                    onClick={() => setShowToast(false)}
+                  ></button>
+                </div>
+                <div className="toast-body">{toastMessage}</div>
+              </div>
+            )}
     </div>
   );
 };

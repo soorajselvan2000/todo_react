@@ -78,6 +78,20 @@ export const getTodosByDate = async (date) => {
   return res.data;
 };
 
+// ================== USER EXPORT ==================
+export const exportTodos = async (format) => {
+  const res = await userApi.get(`/todos/export/?format=${format}`, {
+    responseType: "blob", // important for file download
+  });
+  return res.data;
+};
+
+export const exportTodosLog = async () => {
+  const res = await userApi.post(`/todos/export/log/`);
+  return res.data;
+};
+
+
 // ================== ADMIN ==================
 export const loginAdmin = async (adminData) => {
   const res = await axios.post(`${API_BASE_URL}/admin/login/`, adminData);
