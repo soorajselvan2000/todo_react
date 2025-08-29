@@ -1,0 +1,50 @@
+.export-dropdown {
+  display: inline-block; /* inline with other elements */
+  margin-right: 0.5rem; /* spacing from other inline items */
+}
+
+.export-btn {
+  background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+  color: white;
+  border: none;
+  padding: 0.4rem 0.9rem;
+  border-radius: 0.4rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.export-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  background: linear-gradient(135deg, #2575fc 0%, #6a11cb 100%);
+}
+
+.export-menu {
+  min-width: 180px;
+  border-radius: 0.5rem;
+  border: none;
+  padding: 0.2rem 0;
+}
+
+.export-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  color: #333;
+  transition: all 0.2s ease;
+}
+
+.export-item i {
+  font-size: 1.1rem;
+  color: #2575fc;
+}
+
+.export-item:hover {
+  background-color: #2575fc;
+  color: white;
+}
+
+.export-item:hover i {
+  color: white;
+}

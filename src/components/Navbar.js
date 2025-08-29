@@ -1,5 +1,5 @@
 // src/components/Navbar.js
-import React from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { userLogoutSuccess } from "../store/userAuthSlice";
@@ -9,8 +9,8 @@ import { setUserToken, setAdminToken } from "../services/api";
 const Navbar = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [isExpanded, setIsExpanded] = useState(false);
 
-  // ✅ Use the actual flag names from your slices
   const isUserAuthenticated = useSelector(
     (state) => state.userAuth?.isAuthenticated
   );
@@ -20,92 +20,223 @@ const Navbar = () => {
 
   const handleLogout = () => {
     if (isAdminAuthenticated) {
-      // Admin logout
       dispatch(adminLogoutSuccess());
-      setAdminToken(null);                 // clear axios interceptor token
+      setAdminToken(null);
       localStorage.removeItem("adminToken");
       localStorage.removeItem("adminInfo");
       navigate("/admin/login");
       return;
     }
     if (isUserAuthenticated) {
-      // User logout
       dispatch(userLogoutSuccess());
-      setUserToken(null);                  // clear axios interceptor token
+      setUserToken(null);
       localStorage.removeItem("userToken");
       localStorage.removeItem("userInfo");
       navigate("/login");
     }
+    setIsExpanded(false);
+  };
+
+  const toggleNavbar = () => {
+    setIsExpanded(!isExpanded);
+  };
+
+  const closeNavbar = () => {
+    setIsExpanded(false);
   };
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-dark px-3">
-      <Link className="navbar-brand" to="/">Todo App</Link>
+    <nav className="navbar navbar-expand-lg navbar-dark bg-primary shadow">
+      <div className="container">
+        <Link className="navbar-brand fw-bold d-flex align-items-center" to="/" onClick={closeNavbar}>
+          <i className="bi bi-check2-square me-2"></i>Todo App
+        </Link>
 
-      <button
-        className="navbar-toggler"
-        type="button"
-        data-bs-toggle="collapse"
-        data-bs-target="#navbarNav"
-        aria-controls="navbarNav"
-        aria-expanded="false"
-        aria-label="Toggle navigation"
-      >
-        <span className="navbar-toggler-icon" />
-      </button>
+        <button
+          className="navbar-toggler"
+          type="button"
+          onClick={toggleNavbar}
+          aria-expanded={isExpanded}
+        >
+          <span className="navbar-toggler-icon"></span>
+        </button>
 
-      <div className="collapse navbar-collapse" id="navbarNav">
-        <ul className="navbar-nav ms-auto">
+        <div className={`collapse navbar-collapse ${isExpanded ? 'show' : ''}`}>
+          <ul className="navbar-nav ms-auto">
 
-          {/* ---------------- User Logged In ---------------- */}
-          {isUserAuthenticated && !isAdminAuthenticated && (
-            <>
-              <li className="nav-item">
-                <Link className="nav-link" to="/todos">My Todos</Link>
-              </li>
-              <li className="nav-item">
-                <button className="btn btn-danger btn-sm ms-2" onClick={handleLogout}>
-                  Logout
-                </button>
-              </li>
-            </>
-          )}
+            {/* ---------------- User Logged In ---------------- */}
+            {isUserAuthenticated && !isAdminAuthenticated && (
+              <>
+                <li className="nav-item">
+                  <Link className="nav-link d-flex align-items-center" to="/todos" onClick={closeNavbar}>
+                    <i className="bi bi-list-task me-1"></i>My Todos
+                  </Link>
+                </li>
+                <li className="nav-item ms-2 mt-2 mt-lg-0">
+                  <button className="btn btn-outline-light btn-sm" onClick={handleLogout}>
+                    <i className="bi bi-box-arrow-right me-1"></i>Logout
+                  </button>
+                </li>
+              </>
+            )}
 
-          {/* ---------------- Admin Logged In ---------------- */}
-          {isAdminAuthenticated && (
-            <>
-              <li className="nav-item">
-                <Link className="nav-link" to="/admin/report">User Report</Link>
-              </li>
-              <li className="nav-item">
-                <Link className="nav-link" to="/admin/usage-stats">Usage Stats</Link>
-              </li>
-              <li className="nav-item">
-                <button className="btn btn-danger btn-sm ms-2" onClick={handleLogout}>
-                  Logout
-                </button>
-              </li>
-            </>
-          )}
+            {/* ---------------- Admin Logged In ---------------- */}
+            {isAdminAuthenticated && (
+              <>
+                <li className="nav-item">
+                  <Link className="nav-link d-flex align-items-center" to="/admin/report" onClick={closeNavbar}>
+                    <i className="bi bi-bar-chart me-1"></i>User Report
+                  </Link>
+                </li>
+                <li className="nav-item">
+                  <Link className="nav-link d-flex align-items-center" to="/admin/usage-stats" onClick={closeNavbar}>
+                    <i className="bi bi-graph-up me-1"></i>Usage Stats
+                  </Link>
+                </li>
+                <li className="nav-item ms-2 mt-2 mt-lg-0">
+                  <button className="btn btn-outline-light btn-sm" onClick={handleLogout}>
+                    <i className="bi bi-box-arrow-right me-1"></i>Logout
+                  </button>
+                </li>
+              </>
+            )}
 
-          {/* ---------------- No one logged in ---------------- */}
-          {!isUserAuthenticated && !isAdminAuthenticated && (
-            <>
-              <li className="nav-item">
-                <Link className="nav-link" to="/signup">Signup</Link>
-              </li>
-              <li className="nav-item">
-                <Link className="nav-link" to="/login">User Login</Link>
-              </li>
-              <li className="nav-item">
-                <Link className="nav-link" to="/admin/login">Admin Login</Link>
-              </li>
-            </>
-          )}
-        </ul>
+            {/* ---------------- No one logged in ---------------- */}
+            {!isUserAuthenticated && !isAdminAuthenticated && (
+              <>
+                <li className="nav-item">
+                  <Link className="nav-link" to="/signup" onClick={closeNavbar}>Signup</Link>
+                </li>
+                <li className="nav-item">
+                  <Link className="nav-link d-flex align-items-center" to="/login" onClick={closeNavbar}>
+                    <i className="bi bi-person me-1"></i>User Login
+                  </Link>
+                </li>
+                <li className="nav-item">
+                  <Link className="nav-link d-flex align-items-center" to="/admin/login" onClick={closeNavbar}>
+                    <i className="bi bi-shield-lock me-1"></i>Admin Login
+                  </Link>
+                </li>
+              </>
+            )}
+          </ul>
+        </div>
       </div>
     </nav>
   );
 };
 
 export default Navbar;
+
+
+// // src/components/Navbar.js
+// import React from "react";
+// import { Link, useNavigate } from "react-router-dom";
+// import { useSelector, useDispatch } from "react-redux";
+// import { userLogoutSuccess } from "../store/userAuthSlice";
+// import { adminLogoutSuccess } from "../store/adminAuthSlice";
+// import { setUserToken, setAdminToken } from "../services/api";
+
+// const Navbar = () => {
+//   const dispatch = useDispatch();
+//   const navigate = useNavigate();
+
+//   // ✅ Use the actual flag names from your slices
+//   const isUserAuthenticated = useSelector(
+//     (state) => state.userAuth?.isAuthenticated
+//   );
+//   const isAdminAuthenticated = useSelector(
+//     (state) => state.adminAuth?.isAdminAuthenticated
+//   );
+
+//   const handleLogout = () => {
+//     if (isAdminAuthenticated) {
+//       // Admin logout
+//       dispatch(adminLogoutSuccess());
+//       setAdminToken(null);                 // clear axios interceptor token
+//       localStorage.removeItem("adminToken");
+//       localStorage.removeItem("adminInfo");
+//       navigate("/admin/login");
+//       return;
+//     }
+//     if (isUserAuthenticated) {
+//       // User logout
+//       dispatch(userLogoutSuccess());
+//       setUserToken(null);                  // clear axios interceptor token
+//       localStorage.removeItem("userToken");
+//       localStorage.removeItem("userInfo");
+//       navigate("/login");
+//     }
+//   };
+
+//   return (
+//     <nav className="navbar navbar-expand-lg navbar-dark bg-dark px-3">
+//       <Link className="navbar-brand" to="/">Todo App</Link>
+
+//       <button
+//         className="navbar-toggler"
+//         type="button"
+//         data-bs-toggle="collapse"
+//         data-bs-target="#navbarNav"
+//         aria-controls="navbarNav"
+//         aria-expanded="false"
+//         aria-label="Toggle navigation"
+//       >
+//         <span className="navbar-toggler-icon" />
+//       </button>
+
+//       <div className="collapse navbar-collapse" id="navbarNav">
+//         <ul className="navbar-nav ms-auto">
+
+//           {/* ---------------- User Logged In ---------------- */}
+//           {isUserAuthenticated && !isAdminAuthenticated && (
+//             <>
+//               <li className="nav-item">
+//                 <Link className="nav-link" to="/todos">My Todos</Link>
+//               </li>
+//               <li className="nav-item">
+//                 <button className="btn btn-danger btn-sm ms-2" onClick={handleLogout}>
+//                   Logout
+//                 </button>
+//               </li>
+//             </>
+//           )}
+
+//           {/* ---------------- Admin Logged In ---------------- */}
+//           {isAdminAuthenticated && (
+//             <>
+//               <li className="nav-item">
+//                 <Link className="nav-link" to="/admin/report">User Report</Link>
+//               </li>
+//               <li className="nav-item">
+//                 <Link className="nav-link" to="/admin/usage-stats">Usage Stats</Link>
+//               </li>
+//               <li className="nav-item">
+//                 <button className="btn btn-danger btn-sm ms-2" onClick={handleLogout}>
+//                   Logout
+//                 </button>
+//               </li>
+//             </>
+//           )}
+
+//           {/* ---------------- No one logged in ---------------- */}
+//           {!isUserAuthenticated && !isAdminAuthenticated && (
+//             <>
+//               <li className="nav-item">
+//                 <Link className="nav-link" to="/signup">Signup</Link>
+//               </li>
+//               <li className="nav-item">
+//                 <Link className="nav-link" to="/login">User Login</Link>
+//               </li>
+//               <li className="nav-item">
+//                 <Link className="nav-link" to="/admin/login">Admin Login</Link>
+//               </li>
+//             </>
+//           )}
+//         </ul>
+//       </div>
+//     </nav>
+//   );
+// };
+
+// export default Navbar;
