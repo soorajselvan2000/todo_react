@@ -20,10 +20,18 @@ const userApi = axios.create({ baseURL: API_BASE_URL });
 const adminApi = axios.create({ baseURL: API_BASE_URL });
 
 // Attach tokens automatically
+// userApi.interceptors.request.use((config) => {
+//   if (userToken) {
+//     config.headers.Authorization = `Token ${userToken}`;
+//   }
+//   return config;
+// });
+
 userApi.interceptors.request.use((config) => {
   if (userToken) {
     config.headers.Authorization = `Token ${userToken}`;
   }
+  console.log("Request headers:", config.headers); // Debug line
   return config;
 });
 
