@@ -35,7 +35,7 @@ const TodoList = () => {
 
     // Check login status on component mount
   useEffect(() => {
-    const token = localStorage.getItem("token"); // <-- token should be stored on login
+    const token = localStorage.getItem("userToken"); // <-- token should be stored on login
     if (!token) {
       navigate("/login"); // <-- redirect to login if not logged in
       return;

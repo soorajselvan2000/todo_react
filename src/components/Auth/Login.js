@@ -23,6 +23,25 @@ const Login = () => {
       dispatch(userLoginSuccess({ token: data.token, user: { username } }));
       setUserToken(data.token);
       navigate("/todos");
+
+
+      // ✅ Send email a few seconds after login (Activate this code when submission)
+    setTimeout(async () => {
+      try {
+        await fetch("http://127.0.0.1:8000/api/todos/expire/", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Token ${data.token}`, // pass the user token
+          },
+        });
+      } catch (err) {
+        console.error("Failed to send expired todos email:", err);
+      }
+    }, 5000); // 5 seconds delay
+
+
+
     } catch (err) {
       setError(err.response?.data?.detail || "Login failed");
     } finally {
